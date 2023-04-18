@@ -1,5 +1,5 @@
 library(dplyr)
-library(lubridate)
+library(lubridate) #working with dates
 library(ggplot2)
 
 # Load vectors containing publication dates and headlines
