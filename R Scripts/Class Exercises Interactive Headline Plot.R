@@ -4,12 +4,12 @@ library(ggplot2)
 library(plotly)
 
 ### --- Group headlines by month---
-
 # Load vectors containing publication dates and headlines
 dates_vector <- readRDS(file = "Data files/syria_dates.rds")
 headline_vector <- readRDS(file = "Data files/syria_headlines.rds")
 keywords <- readRDS(file="Data files/keywords_by_date_dataframe.rds")
 
+#Convert date in keywords dataframe and dates_vector to the same date format for joining later
 keywords <- keywords %>% 
   mutate(Date=lubridate::ym(top_headline_dates)) %>% 
   mutate(Date=floor_date(as_date(Date), unit="month")) %>% 
@@ -26,6 +26,7 @@ headline_month <- headlines_dates %>%
   mutate(Date=floor_date(as_date(datetime_vector), unit="month")) %>% 
   count(Date)
 
+# Join keywords and number of headline information for plotting later
 dates_keywords <- left_join(headline_month,keywords)
 
 #Plot headlines by date
