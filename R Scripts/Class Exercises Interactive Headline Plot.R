@@ -36,6 +36,12 @@ saveRDS(headlines_dates, file = "Data files/syrian_headlines_dataframe.rds")
 
 ### --- Add interactivity to bar chart plot
 
+<<<<<<< HEAD
+=======
+key_words <- rio::import("Data files/SyrianKeyWords.csv")
+left_join(headline_month, key_words, by=())
+
+>>>>>>> 6e6c82f02eec12330996d3134b7819b67e0ab299
 headlines_plotly <- ggplotly(headline_plot) %>%  # convert ggplot to interactive plotly chart
   add_trace(Date=Date,
             Articles=n,
