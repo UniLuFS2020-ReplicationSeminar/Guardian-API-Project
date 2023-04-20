@@ -82,6 +82,3 @@ headline_plot2 <- ggplot(data = headline_month, aes(x = Year, y = n, fill = Mont
   xlab("Year") +
   theme_minimal() +
   theme(legend.position = "bottom")
-
-# Show the plot
-headline_plot2
