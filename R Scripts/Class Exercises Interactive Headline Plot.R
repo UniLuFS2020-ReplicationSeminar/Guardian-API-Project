@@ -8,7 +8,13 @@ library(plotly)
 # Load vectors containing publication dates and headlines
 dates_vector <- readRDS(file = "Data files/syria_dates.rds")
 headline_vector <- readRDS(file = "Data files/syria_headlines.rds")
+keywords <- readRDS(file="Data files/keywords_by_date_dataframe.rds")
 
+keywords <- keywords %>% 
+  mutate(Date=lubridate::ym(top_headline_dates)) %>% 
+  mutate(Date=floor_date(as_date(Date), unit="month")) %>% 
+  select(-top_headline_dates)
+  
 # Convert character column to datetime
 datetime_vector <- lubridate::ymd_hms(dates_vector)
 
@@ -20,8 +26,10 @@ headline_month <- headlines_dates %>%
   mutate(Date=floor_date(as_date(datetime_vector), unit="month")) %>% 
   count(Date)
 
+dates_keywords <- left_join(headline_month,keywords)
+
 #Plot headlines by date
-headline_plot <- ggplot(data=headline_month, aes(x=Date, y=n))+
+headline_plot <- ggplot(data=dates_keywords, aes(x=Date, y=n))+
   geom_bar(stat="identity", fill="#445867")+
   ggtitle("Distribution of headlines on Syria")+
   ylab("Number of headlines")+
@@ -31,17 +39,7 @@ headline_plot <- ggplot(data=headline_month, aes(x=Date, y=n))+
         panel.grid.minor = element_line(linetype="dashed"),
         axis.text.x=element_text(size=12))
 
-#Export dataframe containing number of headlines per date
-saveRDS(headlines_dates, file = "Data files/syrian_headlines_dataframe.rds")
-
 ### --- Add interactivity to bar chart plot
-
-<<<<<<< HEAD
-=======
-key_words <- rio::import("Data files/SyrianKeyWords.csv")
-left_join(headline_month, key_words, by=())
-
->>>>>>> 6e6c82f02eec12330996d3134b7819b67e0ab299
 headlines_plotly <- ggplotly(headline_plot) %>%  # convert ggplot to interactive plotly chart
   add_trace(Date=Date,
             Articles=n,
