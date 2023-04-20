@@ -1,9 +1,8 @@
 library(dplyr)
 library(lubridate) #working with dates
 library(ggplot2)
-library(plotly)
-
-### --- Group headlines by month---
+#install.packages("plotly")
+library("plotly")
 
 # Load vectors containing publication dates and headlines
 dates_vector <- readRDS(file = "Data files/syria_dates.rds")
@@ -20,10 +19,17 @@ headline_month <- headlines_dates %>%
   mutate(Date=floor_date(as_date(datetime_vector), unit="month")) %>% 
   count(Date)
 
-#Export dataframe containing number of headlines per date
+#Plot headlines by date
+headline_plot <- ggplot(data=headline_month, aes(x=Date, y=n))+
+  geom_bar(stat="identity")+
+  ggtitle("Distribution of headlines on Syria")+
+  ylab("Number of headlines")+
+  theme_minimal()
+
+#Export dataframe
 saveRDS(headlines_dates, file = "Data files/syrian_headlines_dataframe.rds")
 
-### --- Colorful bar chart---
+#Colorful bar chart
 
 # Group headlines by year
 headlines_yearly <- headlines_dates %>%
@@ -76,9 +82,3 @@ headline_plot2 <- ggplot(data = headline_month, aes(x = Year, y = n, fill = Mont
   xlab("Year") +
   theme_minimal() +
   theme(legend.position = "bottom")
-
-#Export pdf of headlines by year and month
-pdf("Headlines by year and month.pdf") 
-headline_plot2
-dev.off() 
-
