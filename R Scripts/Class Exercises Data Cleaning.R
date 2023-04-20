@@ -20,23 +20,8 @@ headline_month <- headlines_dates %>%
   mutate(Date=floor_date(as_date(datetime_vector), unit="month")) %>% 
   count(Date)
 
-#Plot headlines by date
-headline_plot <- ggplot(data=headline_month, aes(x=Date, y=n))+
-  geom_bar(stat="identity", fill="#445867")+
-  ggtitle("Distribution of headlines on Syria")+
-  ylab("Number of headlines")+
-  scale_x_date(date_breaks = "1 year",date_labels="%Y")+
-  theme_minimal()+
-  theme(panel.grid.major = element_line(linetype="dashed"),
-        panel.grid.minor = element_line(linetype="dashed"),
-        axis.text.x=element_text(size=12))
-
 #Export dataframe containing number of headlines per date
 saveRDS(headlines_dates, file = "Data files/syrian_headlines_dataframe.rds")
-
-### --- Add interactivity to bar chart plot
-
-
 
 ### --- Colorful bar chart---
 
