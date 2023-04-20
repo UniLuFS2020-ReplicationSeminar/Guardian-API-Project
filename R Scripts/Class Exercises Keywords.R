@@ -40,7 +40,7 @@ tokens_cleaned  <- tokens(current_corpus, remove_punct = TRUE, remove_numbers=TR
 no_stopwords <- tokens_remove(tokens_cleaned, custom_dictionary)
 
 cleaned_dfm <- dfm(no_stopwords)
-top_features <- topfeatures(cleaned_dfm , 10) 
+top_features <- topfeatures(cleaned_dfm , 5) 
 list_features <- list(names(top_features)) # so results display correctly
 keywords_vector[i] <- list_features
 
@@ -52,6 +52,25 @@ keywords_by_date$keywords  <- keywords_vector
 
 #Export keywords by date as csv
 rio::export(keywords_by_date, "Data files/SyrianKeyWords.csv")
+
+#Export keywords as R object
+saveRDS(keywords_by_date, file = "Data files/keywords_by_date_dataframe.rds")
+
+###--- Create worldcloud with key words from the corpus
+
+current_corpus <- quanteda::corpus(current_date, text_field="headline_vector")
+
+# Add more words to stop word dictionary
+custom_dictionary <- stopwords("english")
+custom_dictionary <- append(custom_dictionary,c("review", "video", "syria", "editorial"))
+
+tokens_cleaned  <- tokens(current_corpus, remove_punct = TRUE, remove_numbers=TRUE, remove_symbols = TRUE, split_hyphens = TRUE, 
+                          remove_separators = TRUE, remove_url=TRUE)
+
+no_stopwords <- tokens_remove(tokens_cleaned, custom_dictionary)
+
+cleaned_dfm <- dfm(no_stopwords)
+top_features <- topfeatures(cleaned_dfm , 5) 
 
 
                              

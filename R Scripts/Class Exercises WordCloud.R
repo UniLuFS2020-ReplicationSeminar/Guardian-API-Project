@@ -30,7 +30,7 @@ names <- names(list)
 combined_tokens_list <- phrase(names)
 tokens_combined <- tokens_compound(no_stopwords,combined_tokens_list, case_insensitive=TRUE)
 
-# Create document ferquency matrix and trim so that each term must be mentioned at least 3 times in total
+# Create document frequency matrix and trim so that each term must be mentioned at least 3 times in total
 cleaned_dfm <- dfm(tokens_combined) %>% 
   dfm_trim(min_termfreq = 3)
 
