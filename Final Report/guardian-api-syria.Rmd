@@ -26,26 +26,6 @@ library(quanteda.textplots)
 ```
 
 ```{r}
-##Data Cleaning
-### --- Group headlines by month---
-
-# Load vectors containing publication dates and headlines
-dates_vector <- readRDS(file = "C:/Users/User/Desktop/data mining/data mining/Guardian-API-Project/Data files/syria_dates.rds")
-headline_vector <- readRDS(file = "C:/Users/User/Desktop/data mining/data mining/Guardian-API-Project/Data files/syria_headlines.rds")
-
-# Convert character column to datetime
-datetime_vector <- lubridate::ymd_hms(dates_vector)
-
-#Convert vectors to dataframe
-headlines_dates <- data.frame(datetime_vector,headline_vector)
-
-#Count headlines per date
-headline_month <- headlines_dates %>% 
-  mutate(Date=floor_date(as_date(datetime_vector), unit="month")) %>% 
-  count(Date)
-
-#Export dataframe containing number of headlines per date
-saveRDS(headlines_dates, file = "C:/Users/User/Desktop/data mining/data mining/Guardian-API-Project/Data files/syrian_headlines_dataframe.rds")
 ```
 # Syrian Civil War from 2011-2023 in Guardian Headlines 
 ## Introduction
@@ -63,7 +43,7 @@ The aim of the project is to observe the change and the reflections of the war i
 
 ### 2. Data Visualisation 1: Number of headlines by the dates (01-01-2011 to 15-04-2023)
 
-```{r}
+```{r, echo=FALSE, message=FALSE}
 
 headlines_dates <- rio::import("../Data files/syrian_headlines_dataframe.rds")
 #Colorful bar chart
@@ -211,9 +191,9 @@ syria_wordcloud
 ```{r}
 ### --- Group headlines by month---
 # Load vectors containing publication dates and headlines
-dates_vector <- readRDS(file = "C:/Users/User/Desktop/data mining/data mining/Guardian-API-Project/Data files/syria_dates.rds")
-headline_vector <- readRDS(file = "C:/Users/User/Desktop/data mining/data mining/Guardian-API-Project/Data files/syria_headlines.rds")
-keywords <- readRDS(file="C:/Users/User/Desktop/data mining/data mining/Guardian-API-Project/Data files/keywords_by_date_dataframe.rds")
+dates_vector <- readRDS(file = "../Data files/syria_dates.rds")
+headline_vector <- readRDS(file = "../Data files/syria_headlines.rds")
+keywords <- readRDS(file="../Data files/keywords_by_date_dataframe.rds")
 
 #Convert date in keywords dataframe and dates_vector to the same date format for joining later
 keywords <- keywords %>% 
