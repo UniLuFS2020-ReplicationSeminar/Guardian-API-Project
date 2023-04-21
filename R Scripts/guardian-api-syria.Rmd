@@ -15,38 +15,14 @@ library("stringr")
 library("jsonlite")
 library("dplyr")
 library("lubridate") #working with dates
+#install.packages("ggplot2")
 library("ggplot2")
 library("plotly")
-
-#Store API key password
-guardian_api_key <- rstudioapi::askForPassword()
-
-# Create empty vectors to store publication dates and headlines
-headline_vector <- vector()
-date_vector <- vector()
-
-for (j in 1:500){# loop through 500 pages of resulst to get all relevant headlines
-  if (j%%12==0){Sys.sleep(1)}# Slow down request rate i line with API limit
-  
-  # Download all headlines containing search term "Syria" from 2011-present
-  guardian_url_string <- str_c("https://content.guardianapis.com/search?page-size=50&page=", 
-  j,
-  "&from-date=2011-01-01&q=%22Syria%22&api-key=00198df8-cef5-4a18-b105-c5884070ff53")
-  response <- httr::GET(guardian_url_string, query=list(q= "Syria", apiKey=guardian_api_key))
-  content <- httr::content(response, as="parse")
-  
-    # Loop through all 50 entries per page extracting the publication date and headline
-    for (i in 1:50){
-      current_headline <- content$response$results[[i]]$webTitle[[1]]
-      current_date <- content$response$results[[i]]$webPublicationDate
-      headline_vector[50*(j-1)+i] <- current_headline
-      date_vector[50*(j-1)+i] <- current_date
-    }
-}
-
-# Export resulting vectors as R objects
-saveRDS(date_vector, file = "syria_dates.rds")
-saveRDS(headline_vector, file = "syria_headlines.rds")
+library("quanteda") # for text analysis
+library("SnowballC") # for removing stopwords
+library("rio")
+library("data.table") # for formatting tables
+library("formattable") # for formatting tables
 ```
 
 ```{r}
@@ -83,7 +59,9 @@ The aim of the project is to observe the change and the reflections of the war i
 - While there was a softer discourse in the first couple of years of the war, the discourse changed after 2015 in the opposite direction.
 - In particular, the unidentified "terrorist" attacks in Europe in recent years have been associated with the Syrian war and refugees.
 
-### 2. Data Visualisation 1: Headlines by the dates (01-01-2011 to 15-04-2023)
+##Data Analysis and Visualisations
+
+### 2. Data Visualisation 1: Number of headlines by the dates (01-01-2011 to 15-04-2023)
 
 ```{r}
 
@@ -114,7 +92,7 @@ headline_plot
 #Count headlines per date
 headline_month <- headlines_dates %>% 
   mutate(Year = year(datetime_vector),
-         Month = month(datetime_vector, label = TRUE)) %>% 
+         Month = month(datetime_vector)) %>% 
   count(Year, Month, sort = FALSE)
 
 # Define a color palette for each month
@@ -131,25 +109,174 @@ for (i in 1:12) {
   month_colors[i] <- month_palette[i]
 }
 
-# Plot headlines by month and year
-headline_plot2 <- ggplot(data = headline_month, aes(x = Year, y = n, fill = Month)) +
-  geom_col(position = "stack") +
-  scale_fill_manual(values = month_colors) +
-  ggtitle("Distribution of Headlines on Syria by Month and Year") +
-  ylab("Number of Headlines") +
-  xlab("Year") +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-# Show the plot
-headline_plot2
-
 ```
 
 
-### 2. Data Visualisation 3. 
+### 2. Data Visualisation 2. Keywords and Wordcloud
 ```{r}
+# Import Syrian headlines and convert to corpus
+syria_headlines_dataframe <- readRDS(file = "C:/Users/User/Desktop/data mining/data mining/Guardian-API-Project/Data files/syrian_headlines_dataframe.rds")
+
+#Create new column containing only year and month for grouping later
+headlines_month <- syria_headlines_dataframe %>% 
+  mutate(Month_Yr = format_ISO8601(datetime_vector, precision = "ym"))
+
+#Identify important events with more than 200 headlines a month
+top_headlines <- headlines_month %>% 
+  group_by(Month_Yr) %>% 
+  summarise(n=n()) %>% 
+  filter(n>200) %>% 
+  arrange(desc(n))
+
+#Create vector containing months with more than 200 headlines
+top_headline_dates <- top_headlines$Month_Yr
+keywords_vector <- vector()
+
+#Loop identifying the top 5 words for every month with more than 200 headlines
+for (i in 1:length(top_headline_dates)){
+
+current_date <- headlines_month %>% 
+  filter(Month_Yr==top_headline_dates[i])
+
+current_corpus <- quanteda::corpus(current_date, text_field="headline_vector")
+
+# Add more words to stop word dictionary
+custom_dictionary <- stopwords("english")
+custom_dictionary <- append(custom_dictionary,c("review", "video", "syria", "editorial"))
+
+tokens_cleaned  <- tokens(current_corpus, remove_punct = TRUE, remove_numbers=TRUE, remove_symbols = TRUE, split_hyphens = TRUE, 
+                                remove_separators = TRUE, remove_url=TRUE)
+
+no_stopwords <- tokens_remove(tokens_cleaned, custom_dictionary)
+
+cleaned_dfm <- dfm(no_stopwords)
+top_features <- topfeatures(cleaned_dfm , 5) 
+list_features <- list(names(top_features)) # so results display correctly
+keywords_vector[i] <- list_features
+
+}
+
+#Display keywords in dataframe
+keywords_by_date <- data.frame(top_headline_dates)
+keywords_by_date$keywords  <- keywords_vector
+
+#Export keywords by date as csv
+rio::export(keywords_by_date, "C:/Users/User/Desktop/data mining/data mining/Guardian-API-Project/Data files/SyrianKeyWords.csv")
+
+#Export keywords as R object
+saveRDS(keywords_by_date, file = "C:/Users/User/Desktop/data mining/data mining/Guardian-API-Project/Data files/keywords_by_date_dataframe.rds")
+
+# Customise keywords table
+keywords_data_table <- as.data.table(keywords_by_date)
+formatted_table <- formattable(keywords_data_table, 
+                               align=c("l","l"))
+
+###--- Create worldcloud with key words from the corpus
+
+current_corpus <- quanteda::corpus(current_date, text_field="headline_vector")
+
+# Add more words to stop word dictionary
+custom_dictionary <- stopwords("english")
+custom_dictionary <- append(custom_dictionary,c("review", "video", "syria", "editorial"))
+
+tokens_cleaned  <- tokens(current_corpus, remove_punct = TRUE, remove_numbers=TRUE, remove_symbols = TRUE, split_hyphens = TRUE, 
+                          remove_separators = TRUE, remove_url=TRUE)
+
+no_stopwords <- tokens_remove(tokens_cleaned, custom_dictionary)
+
+cleaned_dfm <- dfm(no_stopwords)
+top_features <- topfeatures(cleaned_dfm , 5) 
 ```
 
+### 2. Data Visualisation 3. Interactive Headline Plot
+```{r}
+### --- Group headlines by month---
+# Load vectors containing publication dates and headlines
+dates_vector <- readRDS(file = "C:/Users/User/Desktop/data mining/data mining/Guardian-API-Project/Data files/syria_dates.rds")
+headline_vector <- readRDS(file = "C:/Users/User/Desktop/data mining/data mining/Guardian-API-Project/Data files/syria_headlines.rds")
+keywords <- readRDS(file="C:/Users/User/Desktop/data mining/data mining/Guardian-API-Project/Data files/keywords_by_date_dataframe.rds")
 
+#Convert date in keywords dataframe and dates_vector to the same date format for joining later
+keywords <- keywords %>% 
+  mutate(Date=lubridate::ym(top_headline_dates)) %>% 
+  mutate(Date=floor_date(as_date(Date), unit="month")) %>% 
+  select(-top_headline_dates)
+  
+# Convert character column to datetime
+datetime_vector <- lubridate::ymd_hms(dates_vector)
+
+#Convert vectors to dataframe
+headlines_dates <- data.frame(datetime_vector,headline_vector)
+
+#Count headlines per date
+headline_month <- headlines_dates %>% 
+  mutate(Date=floor_date(as_date(datetime_vector), unit="month")) %>% 
+  count(Date)
+
+# Join keywords and number of headline information for plotting later
+dates_keywords <- left_join(headline_month,keywords)
+
+#Plot headlines by date
+headline_plot <- ggplot(data=dates_keywords, aes(x=Date, y=n))+
+  geom_bar(stat="identity", fill="#445867")+
+  ggtitle("Distribution of headlines on Syria")+
+  ylab("Number of headlines")+
+  scale_x_date(date_breaks = "1 year",date_labels="%Y")+
+  theme_minimal()+
+  theme(panel.grid.major = element_line(linetype="dashed"),
+        panel.grid.minor = element_line(linetype="dashed"),
+        axis.text.x=element_text(size=12))
+
+### ---  Find keywords for the top 5 most frequent articles
+top_5 <- dates_keywords %>% 
+  arrange(desc(n)) %>% 
+  head(5)
+
+# 2015-11-01: ISIS attacks Paris and UK parliament debate airstrikes on Syria
+# 2013-09-01: Chemical attacks on Ghouta
+
+#Why are there so many headlines on 2019-10-01?
+october_2019 <- dates_keywords %>% 
+  filter(Date=="2019-10-01")
+# 2019-10-01: Trump thanks Kurds for role in killing ISIS leader Abu Bakr Al-Baghdadi
+
+###--- Annotate bar plot with this information
+str(dates_keywords)
+
+#Format dates
+dates_interest <- c("2019-10-01","2015-11-01","2013-09-01")
+dates_interest_formatted <- as.Date(dates_interest, "%Y-%m-%d")
+
+#Add vertical lines
+headline_plot_annotated <- headline_plot+
+  geom_vline(xintercept = dates_interest_formatted, linetype="dashed", linewidth=0.5, alpha=0.8)
+
+#Add text
+text2013 <- "Chemical attacks on Ghouta"
+text2015 <- "Terrorists attack Paris and UK parliament \n debate airstrikes on Syria"
+text2019 <- "Trump thanks Kurds for role in killing \n ISIS leader Abu Bakr Al-Baghdadi"
+
+headline_plot_text_1 <- headline_plot_annotated+
+  annotate("text", x=dates_interest_formatted[1], y=350,label=text2019,
+           col="black", size=4)
+
+headline_plot_text_2 <- headline_plot_text_1+
+  annotate("text", x=as.Date("2016-1-01", "%Y-%m-%d"), y=700,label=text2015,hjust=0,
+           col="black", size=4)
+
+headline_plot_text_3 <- headline_plot_text_2+
+  annotate("text", x=dates_interest_formatted[3], y=600,label=text2013,
+           col="black", size=4)
+
+### --- Add interactivity to bar chart plot
+headlines_plotly <- ggplotly(headline_plot_text_3) %>%  # convert ggplot to interactive plotly chart
+  add_trace(Date=dates_keywords$Date,
+            Articles=n,
+            hovertemplate = paste('<i>Date</i>: <b>%{Date}</b>','<i>Article</i>: <b>%{Articles}</b>'))
+```
 
 ## Results & Conclusion
+
+In this exercise, we analysed the changes in the headlines in the Guardian newspaper since the beginning of the Syrian civil war (2011). Out of a total of 23617 news headlines, we noticed 39 dates that we came across most frequently in news headlines about Syria. On the top of the list, in which Syria was mentioned the most, November 2015. Surprisingly, the date was related to the Paris attacks (https://en.wikipedia.org/wiki/November_2015_Paris_attacks). The assaults, according to French President François Hollande, were an act of war by Islamic State and they were planned in Syria and organised by a terrorist cell in Belgium. The attackers were born in France and Belgium but also fought in Syria and they returned to France through flow of migrants and refugees from Syria. We could also argue from today that after these attacks, the policies and political discourse towards Syrian refugees and migrants have radically changed.
+
+
