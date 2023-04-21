@@ -42,6 +42,21 @@ headline_plot <- ggplot(data=dates_keywords, aes(x=Date, y=n))+
 
 ### --- Add interactivity to bar chart plot
 headlines_plotly <- ggplotly(headline_plot) %>%  # convert ggplot to interactive plotly chart
-  add_trace(Date=Date,
+  add_trace(Date=dates_keywords$Date,
             Articles=n,
             hovertemplate = paste('<i>Date</i>: <b>%{Date}</b>','<i>Article</i>: <b>%{Articles}</b>'))
+
+# Find keywords for the top 5 most frequent articles
+
+top_5 <- dates_keywords %>% 
+  arrange(desc(n)) %>% 
+  head(5)
+
+# 2015-11-01: ISIS attacks Paris and UK parliament debate airstrikes on Syria
+# 2013-09-01: Chemical attacks on Ghouta, Syria
+
+
+#Why are there so many headlines on 2019-10-01?
+october_2019 <- dates_keywords %>% 
+  filter(Date=="2019-10-01")
+# 2019-10-01: Trump thanks Kurds for role in killing ISIS leader Abu Bakr Al-Baghdadi
