@@ -93,8 +93,8 @@ for (i in 1:12) {
 ```
 
 
-### 2. Data Visualisation 2. Keywords and Wordcloud
-```{r}
+### 2. Data Visualisation 2. Keywords
+```{r, echo=FALSE, message=FALSE}
 # Import Syrian headlines and convert to corpus
 syria_headlines_dataframe <- readRDS(file = "../Data files/syrian_headlines_dataframe.rds")
 
@@ -146,13 +146,13 @@ keywords_by_date$keywords  <- keywords_vector
 keywords_data_table <- as.data.table(keywords_by_date)
 formatted_table <- formattable(keywords_data_table, 
                                align=c("l","l"))
-formatted_table
+head(formatted_table)
 
 ```
 
 ### 2. Data Visualisation 3. Word Cloud
 
-```{r}
+```{r,echo=FALSE, message=FALSE}
 ###--- Create word cloud with key words from the corpus
 current_corpus <- quanteda::corpus(syria_headlines_dataframe, text_field="headline_vector")
 
@@ -188,8 +188,9 @@ syria_wordcloud
 ```
 
 ### 2. Data Visualisation 3. Interactive Headline Plot
-```{r}
-### --- Group headlines by month---
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+
 # Load vectors containing publication dates and headlines
 dates_vector <- readRDS(file = "../Data files/syria_dates.rds")
 headline_vector <- readRDS(file = "../Data files/syria_headlines.rds")
@@ -272,6 +273,8 @@ headlines_plotly <- ggplotly(headline_plot_text_3) %>%  # convert ggplot to inte
   add_trace(Date=dates_keywords$Date,
             Articles=n,
             hovertemplate = paste('<i>Date</i>: <b>%{Date}</b>','<i>Article</i>: <b>%{Articles}</b>'))
+
+headlines_plotly
 ```
 
 ## Results & Conclusion
