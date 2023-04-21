@@ -40,22 +40,53 @@ headline_plot <- ggplot(data=dates_keywords, aes(x=Date, y=n))+
         panel.grid.minor = element_line(linetype="dashed"),
         axis.text.x=element_text(size=12))
 
-### --- Add interactivity to bar chart plot
-headlines_plotly <- ggplotly(headline_plot) %>%  # convert ggplot to interactive plotly chart
-  add_trace(Date=dates_keywords$Date,
-            Articles=n,
-            hovertemplate = paste('<i>Date</i>: <b>%{Date}</b>','<i>Article</i>: <b>%{Articles}</b>'))
-
-# Find keywords for the top 5 most frequent articles
-
+### ---  Find keywords for the top 5 most frequent articles
 top_5 <- dates_keywords %>% 
   arrange(desc(n)) %>% 
   head(5)
 
 # 2015-11-01: ISIS attacks Paris and UK parliament debate airstrikes on Syria
-# 2013-09-01: Chemical attacks on Ghouta, Syria
+# 2013-09-01: Chemical attacks on Ghouta
 
 #Why are there so many headlines on 2019-10-01?
 october_2019 <- dates_keywords %>% 
   filter(Date=="2019-10-01")
 # 2019-10-01: Trump thanks Kurds for role in killing ISIS leader Abu Bakr Al-Baghdadi
+
+###--- Annotate bar plot with this information
+str(dates_keywords)
+
+#Format dates
+dates_interest <- c("2019-10-01","2015-11-01","2013-09-01")
+dates_interest_formatted <- as.Date(dates_interest, "%Y-%m-%d")
+
+#Add vertical lines
+headline_plot_annotated <- headline_plot+
+  geom_vline(xintercept = dates_interest_formatted, linetype="dashed", linewidth=0.5, alpha=0.8)
+
+#Add text
+text2013 <- "Chemical attacks on Ghouta"
+text2015 <- "Terrorists attack Paris and UK parliament \n debate airstrikes on Syria"
+text2019 <- "Trump thanks Kurds for role in killing \n ISIS leader Abu Bakr Al-Baghdadi"
+
+headline_plot_text_1 <- headline_plot_annotated+
+  annotate("text", x=dates_interest_formatted[1], y=350,label=text2019,
+           col="black", size=4)
+
+headline_plot_text_2 <- headline_plot_text_1+
+  annotate("text", x=as.Date("2016-1-01", "%Y-%m-%d"), y=700,label=text2015,hjust=0,
+           col="black", size=4)
+
+headline_plot_text_3 <- headline_plot_text_2+
+  annotate("text", x=dates_interest_formatted[3], y=600,label=text2013,
+           col="black", size=4)
+
+### --- Add interactivity to bar chart plot
+headlines_plotly <- ggplotly(headline_plot_text_3) %>%  # convert ggplot to interactive plotly chart
+  add_trace(Date=dates_keywords$Date,
+            Articles=n,
+            hovertemplate = paste('<i>Date</i>: <b>%{Date}</b>','<i>Article</i>: <b>%{Articles}</b>'))
+
+
+
+
