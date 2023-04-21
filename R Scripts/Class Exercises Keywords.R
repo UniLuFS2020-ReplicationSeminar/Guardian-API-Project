@@ -3,6 +3,8 @@ library(quanteda) # for text analysis
 library(SnowballC) # for removing stopwords
 library(lubridate)
 library(rio)
+library(data.table) # for formatting tables
+library(formattable) # for formatting tables
 
 # Import Syrian headlines and convert to corpus
 syria_headlines_dataframe <- readRDS(file = "Data files/syrian_headlines_dataframe.rds")
@@ -55,6 +57,11 @@ rio::export(keywords_by_date, "Data files/SyrianKeyWords.csv")
 
 #Export keywords as R object
 saveRDS(keywords_by_date, file = "Data files/keywords_by_date_dataframe.rds")
+
+# Customise keywords table
+keywords_data_table <- as.data.table(keywords_by_date)
+formatted_table <- formattable(keywords_data_table, 
+                               align=c("l","l"))
 
 ###--- Create worldcloud with key words from the corpus
 
