@@ -39,8 +39,6 @@ The aim of the project is to observe the change and the reflections of the war i
 - While there was a softer discourse in the first couple of years of the war, the discourse changed after 2015 in the opposite direction.
 - In particular, the unidentified "terrorist" attacks in Europe in recent years have been associated with the Syrian war and refugees.
 
-##Data Analysis and Visualisations
-
 ### 2. Data Visualisation 1: Number of headlines by the dates (01-01-2011 to 15-04-2023)
 
 The visualisation illustrates the distribution of the number of headlines throughout the period of interest.Unsurprisingly the numbers are highest from 2014_2016 at the peak of the war.
@@ -156,9 +154,9 @@ head(formatted_table)
 
 ### 2. Data Visualisation 3. Word Cloud
 
-The word cloud illustrates the top 100 words and bi_grams found in the entire Syrian headline corpus.
+The word cloud illustrates the top 100 words and bi_grams found in the entire Syrian headline corpus.It indicates the key players during the conflict including Trump, Islamic State, Russia, Assad and the UK.
 
-```{r,echo=FALSE, message=FALSE}
+```{r,echo=FALSE, message=FALSE, results="hide"}
 ###--- Create word cloud with key words from the corpus
 current_corpus <- quanteda::corpus(syria_headlines_dataframe, text_field="headline_vector")
 
@@ -249,7 +247,6 @@ october_2019 <- dates_keywords %>%
 # 2019-10-01: Trump thanks Kurds for role in killing ISIS leader Abu Bakr Al-Baghdadi
 
 ###--- Annotate bar plot with this information
-str(dates_keywords)
 
 #Format dates
 dates_interest <- c("2019-10-01","2015-11-01","2013-09-01")
