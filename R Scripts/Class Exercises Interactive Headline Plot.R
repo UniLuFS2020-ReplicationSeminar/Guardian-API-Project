@@ -55,7 +55,6 @@ top_5 <- dates_keywords %>%
 # 2015-11-01: ISIS attacks Paris and UK parliament debate airstrikes on Syria
 # 2013-09-01: Chemical attacks on Ghouta, Syria
 
-
 #Why are there so many headlines on 2019-10-01?
 october_2019 <- dates_keywords %>% 
   filter(Date=="2019-10-01")
